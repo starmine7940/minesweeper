@@ -12,11 +12,11 @@ let map = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ];
-const mapQuantity = 81;
-const mapLength = 11;
+const MAP_QUANTITY = 81;
+const EDGE_LENGTH = 11;
 
-//地雷配置のための配列
-let minemap = [
+//地雷配置のための座標配列
+let random_coordinate = [
     [1, 1],[1, 2],[1, 3],[1, 4],[1, 5],[1, 6],[1, 7],[1, 8],[1, 9],
     [2, 1],[2, 2],[2, 3],[2, 4],[2, 5],[2, 6],[2, 7],[2, 8],[2, 9],
     [3, 1],[3, 2],[3, 3],[3, 4],[3, 5],[3, 6],[3, 7],[3, 8],[3, 9],
@@ -25,9 +25,9 @@ let minemap = [
     [6, 1],[6, 2],[6, 3],[6, 4],[6, 5],[6, 6],[6, 7],[6, 8],[6, 9],
     [7, 1],[7, 2],[7, 3],[7, 4],[7, 5],[7, 6],[7, 7],[7, 8],[7, 9],
     [8, 1],[8, 2],[8, 3],[8, 4],[8, 5],[8, 6],[8, 7],[8, 8],[8, 9],
-    [9, 1],[9, 2],[9, 3],[9, 4],[9, 5],[9, 6],[9, 7],[9, 8],[9, 9],
+    [9, 1],[9, 2],[9, 3],[9, 4],[9, 5],[9, 6],[9, 7],[9, 8],[9, 9]
 ];
-const mineLength = 10;
+const MINE_QUANTITY = 10;
 
 //カウントダウンタイマー
 let TIMER;
@@ -37,12 +37,6 @@ function countdown(){
         failed();
     }
 };
-
-//その他
-const $button = document.getElementsByTagName('button');
-const buttonLength = $button.length;
-let OPENCOUNTER = 0;
-let FLAGCOUNTER = 0;
 
 //配列をシャッフルする関数
 function shuffle(array) {
@@ -55,10 +49,12 @@ function shuffle(array) {
 
 //地図を初期化
 function mapinit(x, y){   
-    minemap = shuffle(minemap);
-    for(let i = 0, j = 0; j < mineLength; i++){
-        if(minemap[i][0] !== x && minemap[i][1] !== y){
-            map[minemap[i][0]][minemap[i][1]] = 1;
+    random_coordinate = shuffle(random_coordinate);
+    for(let i = 0, j = 0; j < MINE_QUANTITY; i++){
+        if(random_coordinate[i][0] === x && random_coordinate[i][1] === y){
+            ;
+        }else{
+            map[random_coordinate[i][0]][random_coordinate[i][1]] = 1;
             j++;
         }
     }
@@ -77,8 +73,8 @@ function check(x, y, id){
 
 //失敗した時
 function failed(){
-    for(let i = 0; i < mapLength; i++){
-        for(let j = 0; j < mapLength; j++){
+    for(let i = 0; i < EDGE_LENGTH; i++){
+        for(let j = 0; j < EDGE_LENGTH; j++){
             if(map[i][j] === 1){
                 document.getElementById(String(i) + String(j)).style.backgroundColor = 'red';
                 document.getElementById(String(i) + String(j)).innerHTML = '💣';
@@ -93,65 +89,71 @@ function failed(){
 //周囲の地雷の数を計算
 function calculate(x, y){
     let minecounter = 0;
-    if(map[x - 1][y - 1] === 1){    //左上
+    if(map[x - 1][y - 1] === 1){
         minecounter++;
     }
-    if(map[x][y - 1] === 1){        //上
+    if(map[x][y - 1] === 1){
         minecounter++;
     }
-    if(map[x + 1][y - 1] === 1){    //右上
+    if(map[x + 1][y - 1] === 1){
         minecounter++;
     }
-    if(map[x - 1][y] === 1){        //左
+    if(map[x - 1][y] === 1){
         minecounter++;
     }
-    if(map[x + 1][y] === 1){        //右
+    if(map[x + 1][y] === 1){
         minecounter++;
     }
-    if(map[x - 1][y + 1] === 1){    //左下
+    if(map[x - 1][y + 1] === 1){
         minecounter++;
     }
-    if(map[x][y + 1] === 1){        //下
+    if(map[x][y + 1] === 1){
         minecounter++;
     }
-    if(map[x + 1][y + 1] === 1){    //右下
+    if(map[x + 1][y + 1] === 1){
         minecounter++;
     }
     return minecounter;
 };
 
+//その他
+const $button = document.getElementsByTagName('button');
+const BUTTON_QUANTITY = $button.length;
+let OPEN_COUNTER = 0;
+let FLAG_COUNTER = 0;
+
 //ボタンが押されたら反応
-let handlerIndex = 0;
-while(handlerIndex < buttonLength){
+let handler_index = 0;
+while(handler_index < BUTTON_QUANTITY){
     //左クリック
-    $button[handlerIndex].addEventListener('click', function(e){
+    $button[handler_index].addEventListener('click', function(e){
         document.getElementById(e.target.id).setAttribute("disabled", true);
-        if(OPENCOUNTER === 0){
-            mapinit(e.target.id[0], e.target.id[1]);
+        if(OPEN_COUNTER === 0){
+            mapinit(Number(e.target.id[0]), Number(e.target.id[1]));
             TIMER = setInterval(countdown, 1000);
         }
-        setTimeout(check(Number(e.target.id[0]), Number(e.target.id[1]), e.target.id), 100);
-        OPENCOUNTER++;
+        check(Number(e.target.id[0]), Number(e.target.id[1]), e.target.id);
+        OPEN_COUNTER++;
         //終了判定
-        if(OPENCOUNTER === mapQuantity - mineLength && FLAGCOUNTER === mineLength){
+        if(OPEN_COUNTER === MAP_QUANTITY - MINE_QUANTITY && FLAG_COUNTER === MINE_QUANTITY){
             clearInterval(TIMER);
             window.alert('クリア!')
         }
     });
     //右クリック
-    $button[handlerIndex].addEventListener('contextmenu', function(e){
+    $button[handler_index].addEventListener('contextmenu', function(e){
         if(document.getElementById(e.target.id).innerHTML !== '🚩'){
             document.getElementById(e.target.id).innerHTML = '🚩';
-            FLAGCOUNTER++;
+            FLAG_COUNTER++;
         }else{
             document.getElementById(e.target.id).innerHTML = '　';
-            FLAGCOUNTER--;
+            FLAG_COUNTER--;
         }
         //終了判定
-        if(OPENCOUNTER === mapQuantity - mineLength && FLAGCOUNTER === mineLength){
+        if(OPEN_COUNTER === MAP_QUANTITY - MINE_QUANTITY && FLAG_COUNTER === MINE_QUANTITY){
             clearInterval(TIMER);
             window.alert('クリア!')
         }
     });
-    handlerIndex++;
+    handler_index++;
 };
